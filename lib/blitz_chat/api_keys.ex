@@ -1,0 +1,45 @@
+defmodule BlitzChat.ApiKeys do
+  alias BlitzChat.Repo
+  alias BlitzChat.ApiKeys.ApiKey
+
+  def create_key(attrs) do
+    raw_key = :crypto.strong_rand_bytes(32) |> Base.url_encode64(padding: false)
+    key_hash = hash_key(raw_key)
+    key_prefix = String.slice(raw_key, 0, 8)
+
+    result =
+      %ApiKey{}
+      |> ApiKey.changeset(Map.merge(attrs, %{key_hash: key_hash, key_prefix: key_prefix}))
+      |> Repo.insert()
+
+    case result do
+      {:ok, api_key} -> {:ok, api_key, raw_key}
+      error -> error
+    end
+  end
+
+  def verify_key(raw_key) do
+    key_hash = hash_key(raw_key)
+    prefix = String.slice(raw_key, 0, 8)
+
+    case Repo.get_by(ApiKey, key_prefix: prefix, key_hash: key_hash, is_active: true) do
+      nil -> :error
+      api_key -> {:ok, api_key}
+    end
+  end
+
+  def revoke_key(id) do
+    ApiKey
+    |> Repo.get!(id)
+    |> Ecto.Changeset.change(is_active: false)
+    |> Repo.update()
+  end
+
+  def list_keys do
+    Repo.all(ApiKey)
+  end
+
+  defp hash_key(raw_key) do
+    :crypto.hash(:sha256, raw_key) |> Base.encode16(case: :lower)
+  end
+end
