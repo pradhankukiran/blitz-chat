@@ -8,6 +8,7 @@ defmodule BlitzChatWeb.Router do
     plug :put_root_layout, html: {BlitzChatWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug BlitzChatWeb.Plugs.SetCurrentUser
   end
 
   pipeline :api do
@@ -17,21 +18,19 @@ defmodule BlitzChatWeb.Router do
   scope "/", BlitzChatWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
-  end
+    live_session :default, on_mount: BlitzChatWeb.LiveAuth do
+      live "/", LobbyLive, :index
+      live "/rooms/:slug", RoomLive, :show
+      live "/admin", AdminDashboardLive, :index
+    end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", BlitzChatWeb do
-  #   pipe_through :api
-  # end
+    get "/login", SessionController, :new
+    post "/login", SessionController, :create
+    delete "/logout", SessionController, :delete
+  end
 
   # Enable LiveDashboard in development
   if Application.compile_env(:blitz_chat, :dev_routes) do
-    # If you want to use the LiveDashboard in production, you should put
-    # it behind authentication and allow only admins to access it.
-    # If your application does not have an admins-only section yet,
-    # you can use Plug.BasicAuth to set up some basic authentication
-    # as long as you are also using SSL (which you should anyway).
     import Phoenix.LiveDashboard.Router
 
     scope "/dev" do

@@ -14,6 +14,7 @@ defmodule BlitzChat.Application do
       {Phoenix.PubSub, name: BlitzChat.PubSub},
       {Registry, keys: :unique, name: BlitzChat.RoomRegistry},
       {DynamicSupervisor, name: BlitzChat.Chat.RoomSupervisor, strategy: :one_for_one},
+      BlitzChatWeb.Presence,
       BlitzChatWeb.Endpoint
     ]
 
