@@ -15,6 +15,11 @@ defmodule BlitzChatWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :api_auth do
+    plug :accepts, ["json"]
+    plug BlitzChatWeb.Plugs.ApiKeyAuth
+  end
+
   scope "/", BlitzChatWeb do
     pipe_through :browser
 
@@ -27,6 +32,27 @@ defmodule BlitzChatWeb.Router do
     get "/login", SessionController, :new
     post "/login", SessionController, :create
     delete "/logout", SessionController, :delete
+  end
+
+  # REST API
+  scope "/api", BlitzChatWeb.Api do
+    pipe_through :api_auth
+
+    resources "/rooms", RoomController, only: [:index, :show, :create]
+    get "/rooms/:room_id/stats", RoomController, :stats
+    get "/rooms/:room_id/messages", MessageController, :index
+    post "/rooms/:room_id/messages", MessageController, :create
+  end
+
+  # OpenAPI spec and Swagger UI
+  scope "/api" do
+    pipe_through :api
+    get "/openapi", OpenApiSpex.Plug.RenderSpec, []
+  end
+
+  scope "/swaggerui" do
+    pipe_through :browser
+    get "/", OpenApiSpex.Plug.SwaggerUI, path: "/api/openapi"
   end
 
   # Enable LiveDashboard in development
