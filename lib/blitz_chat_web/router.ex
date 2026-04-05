@@ -13,10 +13,12 @@ defmodule BlitzChatWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug OpenApiSpex.Plug.PutApiSpec, module: BlitzChatWeb.ApiSpec
   end
 
   pipeline :api_auth do
     plug :accepts, ["json"]
+    plug OpenApiSpex.Plug.PutApiSpec, module: BlitzChatWeb.ApiSpec
     plug BlitzChatWeb.Plugs.ApiKeyAuth
   end
 
