@@ -24,8 +24,14 @@ defmodule BlitzChat.ApiKeys do
 
     case Repo.get_by(ApiKey, key_prefix: prefix, key_hash: key_hash, is_active: true) do
       nil -> :error
-      api_key -> {:ok, api_key}
+      api_key -> if expired?(api_key), do: :error, else: {:ok, api_key}
     end
+  end
+
+  defp expired?(%ApiKey{expires_at: nil}), do: false
+
+  defp expired?(%ApiKey{expires_at: expires_at}) do
+    DateTime.compare(expires_at, DateTime.utc_now()) == :lt
   end
 
   def revoke_key(id) do
