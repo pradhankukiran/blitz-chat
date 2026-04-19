@@ -57,12 +57,37 @@ defmodule BlitzChatWeb.Api.MessageController do
 
       true ->
         RoomSupervisor.ensure_room_started(room_id)
-        Chat.RoomServer.send_message(room_id, user_id, body)
 
-        conn
-        |> put_status(:created)
-        |> json(%{data: %{status: "sent", room_id: room_id}})
+        case Chat.RoomServer.send_message(room_id, user_id, body) do
+          {:ok, message} ->
+            conn
+            |> put_status(:created)
+            |> json(%{data: message_json(message)})
+
+          {:error, :body_too_long} ->
+            conn
+            |> put_status(:unprocessable_entity)
+            |> json(%{error: "Message body exceeds 5000 characters"})
+
+          {:error, :empty_body} ->
+            conn
+            |> put_status(:unprocessable_entity)
+            |> json(%{error: "Message body cannot be empty"})
+
+          {:error, %Ecto.Changeset{} = changeset} ->
+            conn
+            |> put_status(:unprocessable_entity)
+            |> json(%{errors: format_errors(changeset)})
+        end
     end
+  end
+
+  defp format_errors(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+      Enum.reduce(opts, msg, fn {key, value}, acc ->
+        String.replace(acc, "%{#{key}}", to_string(value))
+      end)
+    end)
   end
 
   defp message_json(message) do
