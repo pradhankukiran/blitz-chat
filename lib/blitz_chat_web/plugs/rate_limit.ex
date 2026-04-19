@@ -22,7 +22,9 @@ defmodule BlitzChatWeb.Plugs.RateLimit do
         conn
         |> put_resp_header("retry-after", Integer.to_string(div(window_ms, 1000)))
         |> put_status(:too_many_requests)
-        |> Phoenix.Controller.json(%{error: "Rate limit exceeded"})
+        |> Phoenix.Controller.json(%{
+          error: %{code: "rate_limited", message: "Too many requests"}
+        })
         |> halt()
     end
   end

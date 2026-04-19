@@ -11,7 +11,9 @@ defmodule BlitzChatWeb.Plugs.ApiKeyAuth do
       _ ->
         conn
         |> put_status(:unauthorized)
-        |> Phoenix.Controller.json(%{error: "Invalid or missing API key"})
+        |> Phoenix.Controller.json(%{
+          error: %{code: "unauthorized", message: "Invalid or missing API key"}
+        })
         |> halt()
     end
   end
