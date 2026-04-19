@@ -1,6 +1,10 @@
 defmodule BlitzChatWeb.SessionController do
   use BlitzChatWeb, :controller
 
+  plug BlitzChatWeb.Plugs.RateLimit,
+       [bucket: "login", limit: 10, window_ms: 60_000]
+       when action == :create
+
   def new(conn, _params) do
     if conn.assigns[:current_user] do
       redirect(conn, to: ~p"/")

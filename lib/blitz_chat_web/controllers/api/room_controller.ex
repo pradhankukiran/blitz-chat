@@ -5,6 +5,10 @@ defmodule BlitzChatWeb.Api.RoomController do
   alias BlitzChat.Chat
   alias BlitzChat.Chat.RoomSupervisor
 
+  plug BlitzChatWeb.Plugs.RateLimit,
+       [bucket: "api_room_create", limit: 10, window_ms: 60_000]
+       when action == :create
+
   tags ["Rooms"]
   security [%{"bearer" => []}]
 

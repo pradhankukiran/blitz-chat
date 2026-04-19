@@ -5,6 +5,10 @@ defmodule BlitzChatWeb.Api.MessageController do
   alias BlitzChat.Chat
   alias BlitzChat.Chat.RoomSupervisor
 
+  plug BlitzChatWeb.Plugs.RateLimit,
+       [bucket: "api_message_create", limit: 60, window_ms: 60_000]
+       when action == :create
+
   tags ["Messages"]
   security [%{"bearer" => []}]
 
