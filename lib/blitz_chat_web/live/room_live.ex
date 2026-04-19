@@ -166,7 +166,9 @@ defmodule BlitzChatWeb.RoomLive do
       <%!-- Sidebar --%>
       <div class="w-64 border-r border-gray-200 flex flex-col">
         <div class="p-4 border-b border-gray-200">
-          <.link navigate={~p"/"} class="text-sm text-gray-500 hover:text-gray-700">&larr; Back to Lobby</.link>
+          <.link navigate={~p"/"} class="text-sm text-gray-500 hover:text-gray-700">
+            &larr; Back to Lobby
+          </.link>
           <h2 class="text-lg font-bold text-gray-900 mt-2">{@room.name}</h2>
           <p class="text-xs text-gray-500 mt-1">{@room.description}</p>
         </div>
@@ -193,7 +195,12 @@ defmodule BlitzChatWeb.RoomLive do
       <%!-- Main chat area --%>
       <div class="flex-1 flex flex-col">
         <%!-- Messages --%>
-        <div class="flex-1 overflow-y-auto p-4 space-y-3" id="messages" phx-update="stream" phx-hook="ScrollBottom">
+        <div
+          class="flex-1 overflow-y-auto p-4 space-y-3"
+          id="messages"
+          phx-update="stream"
+          phx-hook="ScrollBottom"
+        >
           <div :for={{dom_id, message} <- @streams.messages} id={dom_id} class="flex gap-3">
             <div class="flex-shrink-0 w-8 h-8 bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600">
               {String.first(message.user.display_name)}

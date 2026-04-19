@@ -11,10 +11,10 @@ defmodule BlitzChatWeb.Api.MessageController do
        [bucket: "api_message_create", limit: 60, window_ms: 60_000]
        when action == :create
 
-  tags ["Messages"]
-  security [%{"bearer" => []}]
+  tags(["Messages"])
+  security([%{"bearer" => []}])
 
-  operation :index,
+  operation(:index,
     summary: "List messages in a room",
     parameters: [
       room_id: [in: :path, type: :string, required: true],
@@ -25,6 +25,7 @@ defmodule BlitzChatWeb.Api.MessageController do
       ok: {"Message list", "application/json", BlitzChatWeb.Schemas.MessageListResponse},
       not_found: {"Error", "application/json", nil}
     ]
+  )
 
   def index(conn, %{"room_id" => room_id} = params) do
     with {:ok, room} <- fetch_room(room_id),
@@ -34,7 +35,7 @@ defmodule BlitzChatWeb.Api.MessageController do
     end
   end
 
-  operation :create,
+  operation(:create,
     summary: "Send a message to a room",
     parameters: [room_id: [in: :path, type: :string, required: true]],
     request_body: {"Message params", "application/json", BlitzChatWeb.Schemas.MessageRequest},
@@ -44,6 +45,7 @@ defmodule BlitzChatWeb.Api.MessageController do
       not_found: {"Error", "application/json", nil},
       unprocessable_entity: {"Error", "application/json", nil}
     ]
+  )
 
   def create(conn, %{"room_id" => room_id, "body" => body}) do
     with user_id when not is_nil(user_id) <- conn.assigns.api_key.user_id,

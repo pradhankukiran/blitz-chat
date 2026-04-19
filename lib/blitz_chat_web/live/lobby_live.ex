@@ -53,7 +53,9 @@ defmodule BlitzChatWeb.LobbyLive do
       [{_pid, _}] ->
         topic = "room:#{room_id}"
         BlitzChatWeb.Presence.list(topic) |> map_size()
-      [] -> 0
+
+      [] ->
+        0
     end
   end
 
@@ -69,15 +71,25 @@ defmodule BlitzChatWeb.LobbyLive do
           </div>
           <div class="flex items-center gap-3">
             <a href={~p"/admin"} class="btn btn-ghost btn-sm rounded-none text-gray-500">Admin</a>
-            <button class="btn btn-neutral btn-sm rounded-none" onclick="create_room_modal.showModal()">
+            <button
+              class="btn btn-neutral btn-sm rounded-none"
+              onclick="create_room_modal.showModal()"
+            >
               New Room
             </button>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="rooms" phx-update="stream">
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          id="rooms"
+          phx-update="stream"
+        >
           <div :for={{dom_id, room} <- @streams.rooms} id={dom_id}>
-            <.link navigate={~p"/rooms/#{room.slug}"} class="block border border-gray-200 p-4 hover:border-gray-400 transition-colors">
+            <.link
+              navigate={~p"/rooms/#{room.slug}"}
+              class="block border border-gray-200 p-4 hover:border-gray-400 transition-colors"
+            >
               <h3 class="font-semibold text-gray-900">{room.name}</h3>
               <p class="text-sm text-gray-500 mt-1 line-clamp-2">{room.description}</p>
               <div class="flex items-center gap-2 mt-3 text-xs text-gray-400">
@@ -94,15 +106,39 @@ defmodule BlitzChatWeb.LobbyLive do
             <form phx-submit="create_room" class="space-y-4 mt-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Room Name</label>
-                <input type="text" name="name" required maxlength="100" class="input input-bordered w-full rounded-none" placeholder="Engineering" />
+                <input
+                  type="text"
+                  name="name"
+                  required
+                  maxlength="100"
+                  class="input input-bordered w-full rounded-none"
+                  placeholder="Engineering"
+                />
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea name="description" rows="2" class="textarea textarea-bordered w-full rounded-none" placeholder="What's this room about?"></textarea>
+                <textarea
+                  name="description"
+                  rows="2"
+                  class="textarea textarea-bordered w-full rounded-none"
+                  placeholder="What's this room about?"
+                ></textarea>
               </div>
               <div class="flex justify-end gap-2">
-                <button type="button" class="btn btn-ghost btn-sm rounded-none" onclick="create_room_modal.close()">Cancel</button>
-                <button type="submit" class="btn btn-neutral btn-sm rounded-none" onclick="create_room_modal.close()">Create</button>
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm rounded-none"
+                  onclick="create_room_modal.close()"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  class="btn btn-neutral btn-sm rounded-none"
+                  onclick="create_room_modal.close()"
+                >
+                  Create
+                </button>
               </div>
             </form>
           </div>

@@ -73,7 +73,9 @@ defmodule BlitzChatWeb.AdminDashboardLive do
                 <td class="px-4 py-2 text-gray-600">{format_bytes(room.memory)}</td>
               </tr>
               <tr :if={@room_stats == []}>
-                <td colspan="2" class="px-4 py-8 text-center text-gray-400">No active room processes</td>
+                <td colspan="2" class="px-4 py-8 text-center text-gray-400">
+                  No active room processes
+                </td>
               </tr>
             </tbody>
           </table>

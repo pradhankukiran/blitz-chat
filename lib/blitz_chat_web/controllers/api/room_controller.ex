@@ -11,12 +11,13 @@ defmodule BlitzChatWeb.Api.RoomController do
        [bucket: "api_room_create", limit: 10, window_ms: 60_000]
        when action == :create
 
-  tags ["Rooms"]
-  security [%{"bearer" => []}]
+  tags(["Rooms"])
+  security([%{"bearer" => []}])
 
-  operation :index,
+  operation(:index,
     summary: "List all rooms",
     responses: [ok: {"Room list", "application/json", BlitzChatWeb.Schemas.RoomListResponse}]
+  )
 
   def index(conn, params) do
     with {:ok, opts} <- paginate_opts(params) do
@@ -25,13 +26,14 @@ defmodule BlitzChatWeb.Api.RoomController do
     end
   end
 
-  operation :show,
+  operation(:show,
     summary: "Get a room",
     parameters: [id: [in: :path, type: :string, required: true]],
     responses: [
       ok: {"Room", "application/json", BlitzChatWeb.Schemas.RoomResponse},
       not_found: {"Error", "application/json", nil}
     ]
+  )
 
   def show(conn, %{"id" => id}) do
     case Chat.get_room(id) do
@@ -40,7 +42,7 @@ defmodule BlitzChatWeb.Api.RoomController do
     end
   end
 
-  operation :create,
+  operation(:create,
     summary: "Create a room",
     request_body: {"Room params", "application/json", BlitzChatWeb.Schemas.RoomRequest},
     responses: [
@@ -48,6 +50,7 @@ defmodule BlitzChatWeb.Api.RoomController do
       forbidden: {"Error", "application/json", nil},
       unprocessable_entity: {"Error", "application/json", nil}
     ]
+  )
 
   def create(conn, params) do
     with user_id when not is_nil(user_id) <- conn.assigns.api_key.user_id,
@@ -63,13 +66,14 @@ defmodule BlitzChatWeb.Api.RoomController do
     end
   end
 
-  operation :stats,
+  operation(:stats,
     summary: "Get live room stats",
     parameters: [room_id: [in: :path, type: :string, required: true]],
     responses: [
       ok: {"Stats", "application/json", BlitzChatWeb.Schemas.StatsResponse},
       not_found: {"Error", "application/json", nil}
     ]
+  )
 
   def stats(conn, %{"room_id" => room_id}) do
     case Chat.get_room(room_id) do
