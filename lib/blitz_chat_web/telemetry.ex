@@ -10,10 +10,16 @@ defmodule BlitzChatWeb.Telemetry do
   def init(_arg) do
     children = [
       {:telemetry_poller, measurements: periodic_measurements(), period: 10_000},
-      {TelemetryMetricsPrometheus.Core, metrics: metrics()}
+      {TelemetryMetricsPrometheus.Core, metrics: prometheus_metrics()}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
+  end
+
+  # Prometheus reporter only supports counter / last_value / distribution / sum.
+  # Drop Summary metrics (kept in metrics/0 for LiveDashboard).
+  def prometheus_metrics do
+    Enum.reject(metrics(), &match?(%Telemetry.Metrics.Summary{}, &1))
   end
 
   def metrics do
