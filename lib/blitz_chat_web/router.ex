@@ -8,6 +8,7 @@ defmodule BlitzChatWeb.Router do
     plug :put_root_layout, html: {BlitzChatWeb.Layouts, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug BlitzChatWeb.Plugs.SecurityHeaders
     plug BlitzChatWeb.Plugs.SetCurrentUser
   end
 
