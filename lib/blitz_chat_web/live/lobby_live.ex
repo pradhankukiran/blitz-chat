@@ -19,13 +19,27 @@ defmodule BlitzChatWeb.LobbyLive do
 
   @impl true
   def handle_event("create_room", %{"name" => name, "description" => description}, socket) do
-    case Chat.create_room(%{name: name, description: description}, socket.assigns.current_user.id) do
-      {:ok, room} ->
-        Phoenix.PubSub.broadcast(BlitzChat.PubSub, "lobby", {:room_created, room})
-        {:noreply, push_navigate(socket, to: ~p"/rooms/#{room.slug}")}
+    case BlitzChatWeb.Plugs.RateLimit.check(
+           "lv_create_room",
+           socket.assigns.current_user.id,
+           5,
+           60_000
+         ) do
+      {:deny, _} ->
+        {:noreply, put_flash(socket, :error, "You're creating rooms too fast")}
 
-      {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, "Could not create room")}
+      {:allow, _} ->
+        case Chat.create_room(
+               %{name: name, description: description},
+               socket.assigns.current_user.id
+             ) do
+          {:ok, room} ->
+            Phoenix.PubSub.broadcast(BlitzChat.PubSub, "lobby", {:room_created, room})
+            {:noreply, push_navigate(socket, to: ~p"/rooms/#{room.slug}")}
+
+          {:error, _changeset} ->
+            {:noreply, put_flash(socket, :error, "Could not create room")}
+        end
     end
   end
 

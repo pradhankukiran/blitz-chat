@@ -56,6 +56,17 @@ defmodule BlitzChatWeb.RoomLive do
       body == "" ->
         {:noreply, socket}
 
+      match?(
+        {:deny, _},
+        BlitzChatWeb.Plugs.RateLimit.check(
+          "lv_send_message",
+          socket.assigns.current_user.id,
+          30,
+          10_000
+        )
+      ) ->
+        {:noreply, put_flash(socket, :error, "You're sending messages too fast")}
+
       true ->
         case Chat.RoomServer.send_message(
                socket.assigns.room.id,
