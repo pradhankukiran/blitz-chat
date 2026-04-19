@@ -23,5 +23,9 @@ config :blitz_chat, BlitzChatWeb.Endpoint,
 # Do not print debug messages in production
 config :logger, level: :info
 
+# Structured JSON logs for prod (easier to ingest into Loki/CloudWatch/Datadog)
+config :logger, :default_handler,
+  formatter: {LoggerJSON.Formatters.Basic, metadata: [:request_id, :user_id, :room_id]}
+
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
