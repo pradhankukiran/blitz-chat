@@ -33,3 +33,6 @@ config :phoenix_live_view,
 # Sort query params output of verified routes for robust url comparisons
 config :phoenix,
   sort_verified_routes_query_params: true
+
+# Synchronous API key last_used_at touch to play nicely with the SQL sandbox
+config :blitz_chat, :api_key_sync_touch, true

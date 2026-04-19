@@ -18,9 +18,13 @@ defmodule BlitzChatWeb.Plugs.ApiKeyAuth do
   end
 
   defp touch_async(id) do
-    Task.Supervisor.start_child(BlitzChat.TaskSupervisor, fn ->
+    if Application.get_env(:blitz_chat, :api_key_sync_touch, false) do
       BlitzChat.ApiKeys.touch_last_used(id)
-    end)
+    else
+      Task.Supervisor.start_child(BlitzChat.TaskSupervisor, fn ->
+        BlitzChat.ApiKeys.touch_last_used(id)
+      end)
+    end
   end
 
   defp check_scope(_api_key, nil), do: :ok
