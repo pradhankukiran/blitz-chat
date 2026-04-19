@@ -5,8 +5,19 @@ defmodule BlitzChat.Chat do
 
   # Rooms
 
-  def list_rooms do
-    Repo.all(from r in Room, where: r.is_archived == false, order_by: [asc: r.name])
+  @max_list_limit 100
+  @default_list_limit 50
+
+  def list_rooms(opts \\ []) do
+    {limit, offset} = paginate(opts)
+
+    from(r in Room,
+      where: r.is_archived == false,
+      order_by: [asc: r.name],
+      limit: ^limit,
+      offset: ^offset
+    )
+    |> Repo.all()
   end
 
   def get_room!(id), do: Repo.get!(Room, id)
@@ -28,7 +39,7 @@ defmodule BlitzChat.Chat do
   # Messages
 
   def list_messages(room_id, opts \\ []) do
-    limit = Keyword.get(opts, :limit, 50)
+    {limit, _offset} = paginate(opts)
     before = Keyword.get(opts, :before)
 
     query =
@@ -87,11 +98,15 @@ defmodule BlitzChat.Chat do
     |> Repo.delete_all()
   end
 
-  def list_room_members(room_id) do
+  def list_room_members(room_id, opts \\ []) do
+    {limit, offset} = paginate(opts)
+
     from(m in RoomMembership,
       where: m.room_id == ^room_id,
       join: u in assoc(m, :user),
-      select: u
+      select: u,
+      limit: ^limit,
+      offset: ^offset
     )
     |> Repo.all()
   end
@@ -99,5 +114,16 @@ defmodule BlitzChat.Chat do
   def room_member_count(room_id) do
     from(m in RoomMembership, where: m.room_id == ^room_id, select: count())
     |> Repo.one()
+  end
+
+  defp paginate(opts) do
+    limit =
+      opts
+      |> Keyword.get(:limit, @default_list_limit)
+      |> min(@max_list_limit)
+      |> max(1)
+
+    offset = opts |> Keyword.get(:offset, 0) |> max(0)
+    {limit, offset}
   end
 end

@@ -41,8 +41,23 @@ defmodule BlitzChat.ApiKeys do
     |> Repo.update()
   end
 
-  def list_keys do
-    Repo.all(ApiKey)
+  def list_keys(opts \\ []) do
+    import Ecto.Query
+
+    limit = opts |> Keyword.get(:limit, 50) |> min(100) |> max(1)
+    offset = opts |> Keyword.get(:offset, 0) |> max(0)
+
+    query =
+      case Keyword.get(opts, :user_id) do
+        nil -> from(k in ApiKey)
+        user_id -> from(k in ApiKey, where: k.user_id == ^user_id)
+      end
+
+    query
+    |> order_by(desc: :inserted_at)
+    |> limit(^limit)
+    |> offset(^offset)
+    |> Repo.all()
   end
 
   defp hash_key(raw_key) do
