@@ -28,6 +28,10 @@ defmodule BlitzChatWeb.Router do
     live_session :default, on_mount: BlitzChatWeb.LiveAuth do
       live "/", LobbyLive, :index
       live "/rooms/:slug", RoomLive, :show
+    end
+
+    live_session :admin,
+      on_mount: [BlitzChatWeb.LiveAuth, {BlitzChatWeb.LiveAuth, :ensure_admin}] do
       live "/admin", AdminDashboardLive, :index
     end
 

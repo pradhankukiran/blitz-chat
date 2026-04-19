@@ -1,3 +1,5 @@
+import Ecto.Query
+
 alias BlitzChat.Repo
 alias BlitzChat.Accounts.User
 alias BlitzChat.Chat.Room
@@ -7,6 +9,9 @@ alias BlitzChat.Chat.Room
   %User{}
   |> User.changeset(%{username: "alice", display_name: "Alice Chen"})
   |> Repo.insert(on_conflict: :nothing)
+
+# Promote alice to admin (idempotent across re-runs)
+Repo.update_all(from(u in User, where: u.username == "alice"), set: [admin: true])
 
 {:ok, bob} =
   %User{}

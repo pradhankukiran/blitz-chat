@@ -15,4 +15,17 @@ defmodule BlitzChatWeb.LiveAuth do
     Ecto.NoResultsError ->
       {:halt, redirect(socket, to: "/login")}
   end
+
+  def on_mount(:ensure_admin, _params, _session, socket) do
+    case socket.assigns[:current_user] do
+      %{admin: true} ->
+        {:cont, socket}
+
+      _ ->
+        {:halt,
+         socket
+         |> put_flash(:error, "Admin access required")
+         |> redirect(to: "/")}
+    end
+  end
 end
