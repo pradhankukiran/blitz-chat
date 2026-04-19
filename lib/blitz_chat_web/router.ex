@@ -19,7 +19,13 @@ defmodule BlitzChatWeb.Router do
   pipeline :api_auth do
     plug :accepts, ["json"]
     plug OpenApiSpex.Plug.PutApiSpec, module: BlitzChatWeb.ApiSpec
-    plug BlitzChatWeb.Plugs.ApiKeyAuth
+    plug BlitzChatWeb.Plugs.ApiKeyAuth, scope: :read
+  end
+
+  pipeline :api_auth_write do
+    plug :accepts, ["json"]
+    plug OpenApiSpex.Plug.PutApiSpec, module: BlitzChatWeb.ApiSpec
+    plug BlitzChatWeb.Plugs.ApiKeyAuth, scope: :write
   end
 
   scope "/", BlitzChatWeb do
@@ -40,13 +46,20 @@ defmodule BlitzChatWeb.Router do
     delete "/logout", SessionController, :delete
   end
 
-  # REST API (versioned)
+  # REST API (versioned) — read endpoints
   scope "/api/v1", BlitzChatWeb.Api do
     pipe_through :api_auth
 
-    resources "/rooms", RoomController, only: [:index, :show, :create]
+    resources "/rooms", RoomController, only: [:index, :show]
     get "/rooms/:room_id/stats", RoomController, :stats
     get "/rooms/:room_id/messages", MessageController, :index
+  end
+
+  # REST API (versioned) — write endpoints
+  scope "/api/v1", BlitzChatWeb.Api do
+    pipe_through :api_auth_write
+
+    post "/rooms", RoomController, :create
     post "/rooms/:room_id/messages", MessageController, :create
   end
 
