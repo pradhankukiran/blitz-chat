@@ -15,8 +15,7 @@ defmodule BlitzChat.Chat.RoomMembership do
 
   def changeset(membership, attrs) do
     membership
-    |> cast(attrs, [:room_id, :user_id, :role])
-    |> validate_required([:room_id, :user_id])
+    |> cast(attrs, [:role])
     |> validate_inclusion(:role, ["member", "admin"])
     |> unique_constraint([:room_id, :user_id])
     |> foreign_key_constraint(:room_id)

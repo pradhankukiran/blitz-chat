@@ -19,7 +19,7 @@ defmodule BlitzChatWeb.LobbyLive do
 
   @impl true
   def handle_event("create_room", %{"name" => name, "description" => description}, socket) do
-    case Chat.create_room(%{name: name, description: description, created_by: socket.assigns.current_user.id}) do
+    case Chat.create_room(%{name: name, description: description}, socket.assigns.current_user.id) do
       {:ok, room} ->
         Phoenix.PubSub.broadcast(BlitzChat.PubSub, "lobby", {:room_created, room})
         {:noreply, push_navigate(socket, to: ~p"/rooms/#{room.slug}")}

@@ -13,8 +13,8 @@ defmodule BlitzChat.Chat do
 
   def get_room_by_slug!(slug), do: Repo.get_by!(Room, slug: slug)
 
-  def create_room(attrs) do
-    %Room{}
+  def create_room(attrs, created_by \\ nil) do
+    %Room{created_by: created_by}
     |> Room.changeset(attrs)
     |> Repo.insert()
   end
@@ -50,8 +50,8 @@ defmodule BlitzChat.Chat do
     |> Enum.reverse()
   end
 
-  def create_message(attrs) do
-    %Message{}
+  def create_message(attrs, room_id, user_id) do
+    %Message{room_id: room_id, user_id: user_id}
     |> Message.changeset(attrs)
     |> Repo.insert()
     |> case do
@@ -77,8 +77,8 @@ defmodule BlitzChat.Chat do
   # Memberships
 
   def join_room(room_id, user_id) do
-    %RoomMembership{}
-    |> RoomMembership.changeset(%{room_id: room_id, user_id: user_id})
+    %RoomMembership{room_id: room_id, user_id: user_id}
+    |> RoomMembership.changeset(%{})
     |> Repo.insert(on_conflict: :nothing)
   end
 

@@ -18,11 +18,14 @@ defmodule BlitzChat.Chat.Room do
 
   def changeset(room, attrs) do
     room
-    |> cast(attrs, [:name, :description, :created_by, :max_members])
+    |> cast(attrs, [:name, :description, :max_members])
     |> validate_required([:name])
     |> validate_length(:name, max: 100)
+    |> validate_length(:description, max: 2000)
+    |> validate_number(:max_members, greater_than: 0, less_than_or_equal_to: 10_000)
     |> generate_slug()
     |> unique_constraint(:slug)
+    |> foreign_key_constraint(:created_by)
   end
 
   defp generate_slug(changeset) do

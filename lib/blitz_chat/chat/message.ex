@@ -15,8 +15,8 @@ defmodule BlitzChat.Chat.Message do
 
   def changeset(message, attrs) do
     message
-    |> cast(attrs, [:body, :room_id, :user_id])
-    |> validate_required([:body, :room_id, :user_id])
+    |> cast(attrs, [:body])
+    |> validate_required([:body])
     |> validate_length(:body, min: 1, max: 5000)
     |> foreign_key_constraint(:room_id)
     |> foreign_key_constraint(:user_id)

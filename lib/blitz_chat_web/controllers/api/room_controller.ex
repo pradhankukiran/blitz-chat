@@ -36,7 +36,7 @@ defmodule BlitzChatWeb.Api.RoomController do
     ]
 
   def create(conn, params) do
-    case Chat.create_room(params) do
+    case Chat.create_room(params, conn.assigns.api_key.user_id) do
       {:ok, room} ->
         Phoenix.PubSub.broadcast(BlitzChat.PubSub, "lobby", {:room_created, room})
 

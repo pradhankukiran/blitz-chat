@@ -2,13 +2,13 @@ defmodule BlitzChat.ApiKeys do
   alias BlitzChat.Repo
   alias BlitzChat.ApiKeys.ApiKey
 
-  def create_key(attrs) do
+  def create_key(attrs, user_id \\ nil) do
     raw_key = :crypto.strong_rand_bytes(32) |> Base.url_encode64(padding: false)
     key_hash = hash_key(raw_key)
     key_prefix = String.slice(raw_key, 0, 8)
 
     result =
-      %ApiKey{}
+      %ApiKey{user_id: user_id}
       |> ApiKey.changeset(Map.merge(attrs, %{key_hash: key_hash, key_prefix: key_prefix}))
       |> Repo.insert()
 

@@ -24,8 +24,8 @@ for {name, desc} <- [
       {"Engineering", "Technical discussions and code reviews"},
       {"Random", "Off-topic conversations and fun stuff"}
     ] do
-  %Room{}
-  |> Room.changeset(%{name: name, description: desc, created_by: alice.id})
+  %Room{created_by: alice.id}
+  |> Room.changeset(%{name: name, description: desc})
   |> Repo.insert(on_conflict: :nothing)
 end
 
