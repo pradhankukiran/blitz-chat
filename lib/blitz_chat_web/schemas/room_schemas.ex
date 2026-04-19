@@ -57,8 +57,6 @@ defmodule BlitzChatWeb.Schemas.StatsResponse do
     properties: %{
       room_id: %Schema{type: :string, format: :uuid},
       room_slug: %Schema{type: :string},
-      total_messages: %Schema{type: :integer},
-      buffer_size: %Schema{type: :integer},
       memory: %Schema{type: :integer}
     }
   })

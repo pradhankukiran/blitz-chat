@@ -144,6 +144,10 @@ defmodule BlitzChat.Chat do
     |> Repo.one()
   end
 
+  def message_count do
+    from(m in Message, select: count()) |> Repo.one()
+  end
+
   defp paginate(opts) do
     limit =
       opts

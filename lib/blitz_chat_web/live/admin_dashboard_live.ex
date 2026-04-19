@@ -26,7 +26,7 @@ defmodule BlitzChatWeb.AdminDashboardLive do
     socket
     |> assign(:active_rooms, RoomSupervisor.active_room_count())
     |> assign(:room_stats, room_stats)
-    |> assign(:total_messages, Enum.reduce(room_stats, 0, fn s, acc -> acc + s.total_messages end))
+    |> assign(:total_messages, BlitzChat.Chat.message_count())
   end
 
   @impl true
@@ -64,20 +64,16 @@ defmodule BlitzChatWeb.AdminDashboardLive do
             <thead>
               <tr class="border-b border-gray-100 text-left text-xs text-gray-400 uppercase tracking-wide">
                 <th class="px-4 py-2 font-medium">Room</th>
-                <th class="px-4 py-2 font-medium">Messages</th>
-                <th class="px-4 py-2 font-medium">Buffer</th>
                 <th class="px-4 py-2 font-medium">Memory</th>
               </tr>
             </thead>
             <tbody>
               <tr :for={room <- @room_stats} class="border-b border-gray-50">
                 <td class="px-4 py-2 font-medium text-gray-900">{room.room_slug}</td>
-                <td class="px-4 py-2 text-gray-600">{room.total_messages}</td>
-                <td class="px-4 py-2 text-gray-600">{room.buffer_size}</td>
                 <td class="px-4 py-2 text-gray-600">{format_bytes(room.memory)}</td>
               </tr>
               <tr :if={@room_stats == []}>
-                <td colspan="4" class="px-4 py-8 text-center text-gray-400">No active room processes</td>
+                <td colspan="2" class="px-4 py-8 text-center text-gray-400">No active room processes</td>
               </tr>
             </tbody>
           </table>
