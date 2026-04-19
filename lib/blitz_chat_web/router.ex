@@ -20,6 +20,10 @@ defmodule BlitzChatWeb.Router do
   get "/health", BlitzChatWeb.HealthController, :live
   get "/ready", BlitzChatWeb.HealthController, :ready
 
+  # Prometheus scrape endpoint. Protect at the reverse proxy / firewall layer
+  # in production (only allow internal scrapers).
+  get "/metrics", BlitzChatWeb.MetricsController, :scrape
+
   pipeline :api_auth do
     plug :accepts, ["json"]
     plug OpenApiSpex.Plug.PutApiSpec, module: BlitzChatWeb.ApiSpec

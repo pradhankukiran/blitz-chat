@@ -66,7 +66,8 @@ defmodule BlitzChat.MixProject do
       {:bandit, "~> 1.5"},
       {:open_api_spex, "~> 3.22"},
       {:slugify, "~> 1.3"},
-      {:hammer, "~> 6.2"}
+      {:hammer, "~> 6.2"},
+      {:telemetry_metrics_prometheus_core, "~> 1.2"}
     ]
   end
 
