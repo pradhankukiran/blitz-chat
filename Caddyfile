@@ -1,0 +1,9 @@
+{$PHX_HOST} {
+    encode zstd gzip
+
+    reverse_proxy app:4000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-Proto https
+    }
+}
