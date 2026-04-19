@@ -70,6 +70,9 @@ config :blitz_chat, BlitzChatWeb.Endpoint,
 # Enable dev routes for dashboard and mailbox
 config :blitz_chat, dev_routes: true
 
+# Expose Swagger UI in development only
+config :blitz_chat, :expose_swagger, true
+
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
 

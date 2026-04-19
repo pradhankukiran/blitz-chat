@@ -63,15 +63,17 @@ defmodule BlitzChatWeb.Router do
     post "/rooms/:room_id/messages", MessageController, :create
   end
 
-  # OpenAPI spec and Swagger UI
-  scope "/api" do
-    pipe_through :api
-    get "/openapi", OpenApiSpex.Plug.RenderSpec, []
-  end
+  # OpenAPI spec and Swagger UI (gated; enable in non-prod via :expose_swagger config)
+  if Application.compile_env(:blitz_chat, :expose_swagger, false) do
+    scope "/api" do
+      pipe_through :api
+      get "/openapi", OpenApiSpex.Plug.RenderSpec, []
+    end
 
-  scope "/swaggerui" do
-    pipe_through :browser
-    get "/", OpenApiSpex.Plug.SwaggerUI, path: "/api/openapi"
+    scope "/swaggerui" do
+      pipe_through :browser
+      get "/", OpenApiSpex.Plug.SwaggerUI, path: "/api/openapi"
+    end
   end
 
   # Enable LiveDashboard in development
