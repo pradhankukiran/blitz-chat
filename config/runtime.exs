@@ -61,7 +61,9 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
-  host = System.get_env("PHX_HOST") || "example.com"
+  host =
+    System.get_env("PHX_HOST") ||
+      raise "environment variable PHX_HOST is missing (e.g. `example.com`)"
 
   config :blitz_chat, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
@@ -74,6 +76,7 @@ if config_env() == :prod do
       # for details about using IPv6 vs IPv4 and loopback vs public addresses.
       ip: {0, 0, 0, 0, 0, 0, 0, 0}
     ],
+    check_origin: ["https://" <> host],
     secret_key_base: secret_key_base
 
   # ## SSL Support
