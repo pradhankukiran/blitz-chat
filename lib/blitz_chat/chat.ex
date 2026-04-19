@@ -24,6 +24,18 @@ defmodule BlitzChat.Chat do
 
   def get_room_by_slug!(slug), do: Repo.get_by!(Room, slug: slug)
 
+  def get_room(id) when is_binary(id) do
+    case Ecto.UUID.cast(id) do
+      {:ok, uuid} -> Repo.get(Room, uuid)
+      :error -> nil
+    end
+  end
+
+  def get_room(_), do: nil
+
+  def get_room_by_slug(slug) when is_binary(slug), do: Repo.get_by(Room, slug: slug)
+  def get_room_by_slug(_), do: nil
+
   def create_room(attrs, created_by \\ nil) do
     %Room{created_by: created_by}
     |> Room.changeset(attrs)

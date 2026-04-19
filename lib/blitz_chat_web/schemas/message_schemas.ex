@@ -5,10 +5,9 @@ defmodule BlitzChatWeb.Schemas.MessageRequest do
   OpenApiSpex.schema(%{
     title: "MessageRequest",
     type: :object,
-    required: [:body, :user_id],
+    required: [:body],
     properties: %{
-      body: %Schema{type: :string, maxLength: 5000},
-      user_id: %Schema{type: :string, format: :uuid}
+      body: %Schema{type: :string, maxLength: 5000}
     }
   })
 end

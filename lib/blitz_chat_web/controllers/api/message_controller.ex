@@ -36,16 +36,33 @@ defmodule BlitzChatWeb.Api.MessageController do
     request_body: {"Message params", "application/json", BlitzChatWeb.Schemas.MessageRequest},
     responses: [
       created: {"Message", "application/json", BlitzChatWeb.Schemas.MessageResponse},
+      forbidden: {"Error", "application/json", nil},
+      not_found: {"Error", "application/json", nil},
       unprocessable_entity: {"Error", "application/json", nil}
     ]
 
-  def create(conn, %{"room_id" => room_id, "body" => body, "user_id" => user_id}) do
-    RoomSupervisor.ensure_room_started(room_id)
-    Chat.RoomServer.send_message(room_id, user_id, body)
+  def create(conn, %{"room_id" => room_id, "body" => body}) do
+    user_id = conn.assigns.api_key.user_id
 
-    conn
-    |> put_status(:created)
-    |> json(%{data: %{status: "sent", room_id: room_id}})
+    cond do
+      is_nil(user_id) ->
+        conn
+        |> put_status(:forbidden)
+        |> json(%{error: "API key must be associated with a user"})
+
+      is_nil(Chat.get_room(room_id)) ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{error: "Room not found"})
+
+      true ->
+        RoomSupervisor.ensure_room_started(room_id)
+        Chat.RoomServer.send_message(room_id, user_id, body)
+
+        conn
+        |> put_status(:created)
+        |> json(%{data: %{status: "sent", room_id: room_id}})
+    end
   end
 
   defp message_json(message) do
