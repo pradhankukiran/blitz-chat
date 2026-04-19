@@ -40,8 +40,8 @@ defmodule BlitzChatWeb.Router do
     delete "/logout", SessionController, :delete
   end
 
-  # REST API
-  scope "/api", BlitzChatWeb.Api do
+  # REST API (versioned)
+  scope "/api/v1", BlitzChatWeb.Api do
     pipe_through :api_auth
 
     resources "/rooms", RoomController, only: [:index, :show, :create]

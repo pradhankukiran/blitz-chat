@@ -11,7 +11,7 @@ defmodule BlitzChatWeb.ApiSpec do
         version: "1.0.0",
         description: "REST API for BlitzChat — real-time chat powered by BEAM"
       },
-      servers: [%Server{url: "/api"}],
+      servers: [%Server{url: "/api/v1"}],
       paths: Paths.from_router(BlitzChatWeb.Router),
       components: %Components{
         securitySchemes: %{
