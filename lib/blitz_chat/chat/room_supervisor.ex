@@ -7,8 +7,15 @@ defmodule BlitzChat.Chat.RoomSupervisor do
 
   def ensure_room_started(room_id) do
     case Registry.lookup(BlitzChat.RoomRegistry, room_id) do
-      [{pid, _}] -> {:ok, pid}
-      [] -> start_room(room_id)
+      [{pid, _}] ->
+        {:ok, pid}
+
+      [] ->
+        case start_room(room_id) do
+          {:ok, pid} -> {:ok, pid}
+          {:error, {:already_started, pid}} -> {:ok, pid}
+          other -> other
+        end
     end
   end
 
