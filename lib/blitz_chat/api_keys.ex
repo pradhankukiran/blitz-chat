@@ -1,4 +1,5 @@
 defmodule BlitzChat.ApiKeys do
+  import Ecto.Query
   alias BlitzChat.Repo
   alias BlitzChat.ApiKeys.ApiKey
 
@@ -41,9 +42,12 @@ defmodule BlitzChat.ApiKeys do
     |> Repo.update()
   end
 
-  def list_keys(opts \\ []) do
-    import Ecto.Query
+  def touch_last_used(id) when is_binary(id) do
+    from(k in ApiKey, where: k.id == ^id)
+    |> Repo.update_all(set: [last_used_at: DateTime.utc_now()])
+  end
 
+  def list_keys(opts \\ []) do
     limit = opts |> Keyword.get(:limit, 50) |> min(100) |> max(1)
     offset = opts |> Keyword.get(:offset, 0) |> max(0)
 
@@ -53,10 +57,7 @@ defmodule BlitzChat.ApiKeys do
         user_id -> from(k in ApiKey, where: k.user_id == ^user_id)
       end
 
-    query
-    |> order_by(desc: :inserted_at)
-    |> limit(^limit)
-    |> offset(^offset)
+    from(k in query, order_by: [desc: k.inserted_at], limit: ^limit, offset: ^offset)
     |> Repo.all()
   end
 

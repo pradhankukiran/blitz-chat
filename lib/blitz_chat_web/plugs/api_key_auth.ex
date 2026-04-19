@@ -9,11 +9,18 @@ defmodule BlitzChatWeb.Plugs.ApiKeyAuth do
     with ["Bearer " <> key] <- get_req_header(conn, "authorization"),
          {:ok, api_key} <- BlitzChat.ApiKeys.verify_key(key),
          :ok <- check_scope(api_key, required_scope) do
+      touch_async(api_key.id)
       assign(conn, :api_key, api_key)
     else
       :insufficient_scope -> forbidden(conn, required_scope)
       _ -> unauthorized(conn)
     end
+  end
+
+  defp touch_async(id) do
+    Task.Supervisor.start_child(BlitzChat.TaskSupervisor, fn ->
+      BlitzChat.ApiKeys.touch_last_used(id)
+    end)
   end
 
   defp check_scope(_api_key, nil), do: :ok

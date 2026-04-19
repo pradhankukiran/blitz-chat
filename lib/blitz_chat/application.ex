@@ -12,6 +12,7 @@ defmodule BlitzChat.Application do
       BlitzChat.Repo,
       {DNSCluster, query: Application.get_env(:blitz_chat, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: BlitzChat.PubSub},
+      {Task.Supervisor, name: BlitzChat.TaskSupervisor},
       {Registry, keys: :unique, name: BlitzChat.RoomRegistry},
       {DynamicSupervisor, name: BlitzChat.Chat.RoomSupervisor, strategy: :one_for_one},
       BlitzChatWeb.Presence,
