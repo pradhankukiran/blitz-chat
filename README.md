@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src=".github/logo.svg" alt="BlitzChat" width="440"/>
+<img src=".github/banner.svg" alt="BlitzChat" width="440"/>
 
 ### Real-time chat, powered by the BEAM.
 
