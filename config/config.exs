@@ -59,7 +59,7 @@ config :logger, :sentry, level: :error
 
 config :sentry,
   dsn: nil,
-  included_environments: [:prod]
+  environment_name: Mix.env()
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
