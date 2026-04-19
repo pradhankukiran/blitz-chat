@@ -32,12 +32,19 @@ defmodule BlitzChatWeb.RoomLive do
     messages = Chat.list_messages(room.id, limit: 50)
     presences = if connected?(socket), do: Presence.list("room:#{room.id}"), else: %{}
 
+    oldest =
+      case messages do
+        [%{inserted_at: at} | _] -> at
+        _ -> nil
+      end
+
     {:ok,
      socket
      |> assign(:page_title, room.name)
      |> assign(:room, room)
      |> assign(:presences, presences)
      |> assign(:typing_users, [])
+     |> assign(:oldest_message_at, oldest)
      |> stream(:messages, messages), temporary_assigns: []}
   end
 
@@ -81,17 +88,24 @@ defmodule BlitzChatWeb.RoomLive do
 
   @impl true
   def handle_event("load_more", _params, socket) do
-    messages = socket.assigns[:oldest_message_at]
-    room_id = socket.assigns.room.id
+    case socket.assigns[:oldest_message_at] do
+      nil ->
+        {:noreply, socket}
 
-    older =
-      if messages do
-        Chat.list_messages(room_id, limit: 50, before: messages)
-      else
-        []
-      end
+      before_ts ->
+        older = Chat.list_messages(socket.assigns.room.id, limit: 50, before: before_ts)
 
-    {:noreply, stream(socket, :messages, older, at: 0)}
+        new_oldest =
+          case older do
+            [%{inserted_at: at} | _] -> at
+            _ -> before_ts
+          end
+
+        {:noreply,
+         socket
+         |> assign(:oldest_message_at, new_oldest)
+         |> stream(:messages, older, at: 0)}
+    end
   end
 
   @impl true
