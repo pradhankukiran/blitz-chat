@@ -45,18 +45,30 @@ defmodule BlitzChatWeb.RoomLive do
   def handle_event("send_message", %{"body" => body}, socket) do
     body = String.trim(body)
 
-    if body != "" do
-      Chat.RoomServer.send_message(
-        socket.assigns.room.id,
-        socket.assigns.current_user.id,
-        body
-      )
+    cond do
+      body == "" ->
+        {:noreply, socket}
 
-      # Clear typing indicator
-      update_typing(socket, false)
+      true ->
+        case Chat.RoomServer.send_message(
+               socket.assigns.room.id,
+               socket.assigns.current_user.id,
+               body
+             ) do
+          {:ok, _message} ->
+            update_typing(socket, false)
+            {:noreply, socket}
+
+          {:error, :body_too_long} ->
+            {:noreply, put_flash(socket, :error, "Message too long (max 5000 chars)")}
+
+          {:error, :empty_body} ->
+            {:noreply, socket}
+
+          {:error, _reason} ->
+            {:noreply, put_flash(socket, :error, "Could not send message")}
+        end
     end
-
-    {:noreply, socket}
   end
 
   @impl true
@@ -83,19 +95,8 @@ defmodule BlitzChatWeb.RoomLive do
   end
 
   @impl true
-  def handle_info({:new_message, message_attrs}, socket) do
-    user = BlitzChat.Accounts.get_user!(message_attrs.user_id)
-
-    message = %BlitzChat.Chat.Message{
-      id: Ecto.UUID.generate(),
-      body: message_attrs.body,
-      room_id: message_attrs.room_id,
-      user_id: message_attrs.user_id,
-      user: user,
-      inserted_at: message_attrs.inserted_at
-    }
-
-    {:noreply, stream_insert(socket, :messages, message)}
+  def handle_info({:new_message, %BlitzChat.Chat.Message{} = message}, socket) do
+    {:noreply, stream_insert(socket, :messages, message, limit: -200)}
   end
 
   @impl true
