@@ -1,0 +1,32 @@
+_build/
+deps/
+.elixir_ls/
+.git/
+.gitignore
+.github/
+.vscode/
+
+# Editor backup files
+*~
+*.swp
+
+# Tests and docs we don't need in the image
+test/
+doc/
+*.md
+!README.md
+
+# Compose / Docker files themselves
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Static assets get rebuilt inside the image
+priv/static/assets/
+
+# Secrets / env
+.env*
+*.secret.exs
+
+# Windows release scripts
+rel/overlays/bin/*.bat
