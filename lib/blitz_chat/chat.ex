@@ -113,20 +113,6 @@ defmodule BlitzChat.Chat do
     end
   end
 
-  def insert_messages_batch(messages_attrs) when is_list(messages_attrs) do
-    now = DateTime.utc_now()
-
-    entries =
-      Enum.map(messages_attrs, fn attrs ->
-        Map.merge(attrs, %{
-          id: Ecto.UUID.generate(),
-          inserted_at: now
-        })
-      end)
-
-    Repo.insert_all(Message, entries)
-  end
-
   # Memberships
 
   def join_room(room_id, user_id) do
