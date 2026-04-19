@@ -37,9 +37,39 @@ defmodule BlitzChat.Chat do
   def get_room_by_slug(_), do: nil
 
   def create_room(attrs, created_by \\ nil) do
-    %Room{created_by: created_by}
-    |> Room.changeset(attrs)
-    |> Repo.insert()
+    do_create_room(attrs, created_by, 0)
+  end
+
+  defp do_create_room(attrs, created_by, attempt) do
+    changeset =
+      %Room{created_by: created_by}
+      |> Room.changeset(attrs)
+      |> suffix_slug(attempt)
+
+    case Repo.insert(changeset) do
+      {:error, %Ecto.Changeset{errors: errors}} = err ->
+        if attempt < 3 and Keyword.has_key?(errors, :slug) do
+          do_create_room(attrs, created_by, attempt + 1)
+        else
+          err
+        end
+
+      ok ->
+        ok
+    end
+  end
+
+  defp suffix_slug(changeset, 0), do: changeset
+
+  defp suffix_slug(changeset, _attempt) do
+    case Ecto.Changeset.get_change(changeset, :slug) do
+      nil ->
+        changeset
+
+      slug ->
+        suffix = :crypto.strong_rand_bytes(3) |> Base.url_encode64(padding: false)
+        Ecto.Changeset.put_change(changeset, :slug, "#{slug}-#{suffix}")
+    end
   end
 
   def archive_room(%Room{} = room) do
