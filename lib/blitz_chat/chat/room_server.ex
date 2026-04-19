@@ -1,22 +1,14 @@
 defmodule BlitzChat.Chat.RoomServer do
-  use GenServer
+  use GenServer, restart: :transient, shutdown: 30_000
   require Logger
 
   alias BlitzChat.Chat
 
-  @flush_interval :timer.seconds(5)
   @idle_check_interval :timer.seconds(60)
   @idle_timeout :timer.minutes(5)
-  @throughput_interval :timer.seconds(1)
+  @max_body_bytes 5000
 
-  defstruct [
-    :room_id,
-    :room_slug,
-    message_buffer: [],
-    buffer_size: 0,
-    message_count: 0,
-    last_activity: nil
-  ]
+  defstruct [:room_id, :room_slug, :last_activity]
 
   # Client API
 
@@ -48,9 +40,7 @@ defmodule BlitzChat.Chat.RoomServer do
       last_activity: System.monotonic_time(:millisecond)
     }
 
-    schedule_flush()
     schedule_idle_check()
-    schedule_throughput()
 
     :telemetry.execute([:blitz_chat, :room, :started], %{count: 1}, %{room_id: room_id})
     Logger.info("Room process started: #{room.slug} (#{room_id})")
@@ -60,69 +50,55 @@ defmodule BlitzChat.Chat.RoomServer do
 
   @impl true
   def handle_call({:send_message, user_id, body}, _from, state) do
-    message_attrs = %{
-      body: body,
-      room_id: state.room_id,
-      user_id: user_id
-    }
+    cond do
+      not is_binary(body) or String.trim(body) == "" ->
+        {:reply, {:error, :empty_body}, state}
 
-    state = %{
-      state
-      | message_buffer: [message_attrs | state.message_buffer],
-        buffer_size: state.buffer_size + 1,
-        message_count: state.message_count + 1,
-        last_activity: System.monotonic_time(:millisecond)
-    }
+      byte_size(body) > @max_body_bytes ->
+        {:reply, {:error, :body_too_long}, state}
 
-    # Broadcast to all subscribers
-    Phoenix.PubSub.broadcast(
-      BlitzChat.PubSub,
-      "room:#{state.room_id}",
-      {:new_message, Map.put(message_attrs, :inserted_at, DateTime.utc_now())}
-    )
+      true ->
+        case Chat.create_message(%{body: body}, state.room_id, user_id) do
+          {:ok, message} ->
+            Phoenix.PubSub.broadcast(
+              BlitzChat.PubSub,
+              "room:#{state.room_id}",
+              {:new_message, message}
+            )
 
-    :telemetry.execute(
-      [:blitz_chat, :room, :message_sent],
-      %{count: 1},
-      %{room_id: state.room_id}
-    )
+            :telemetry.execute(
+              [:blitz_chat, :room, :message_sent],
+              %{count: 1},
+              %{room_id: state.room_id}
+            )
 
-    # Flush immediately if buffer is large
-    state =
-      if state.buffer_size >= 50 do
-        flush_buffer(state)
-      else
-        state
-      end
+            {:reply, {:ok, message}, touch_activity(state)}
 
-    {:reply, :ok, state}
+          {:error, changeset} ->
+            {:reply, {:error, changeset}, state}
+        end
+    end
   end
 
   @impl true
   def handle_call(:get_stats, _from, state) do
+    {_, memory} = :erlang.process_info(self(), :memory)
+
     stats = %{
       room_id: state.room_id,
       room_slug: state.room_slug,
-      buffer_size: state.buffer_size,
-      total_messages: state.message_count,
-      memory: :erlang.process_info(self(), :memory) |> elem(1)
+      memory: memory
     }
 
     {:reply, stats, state}
   end
 
   @impl true
-  def handle_info(:flush_buffer, state) do
-    state = flush_buffer(state)
-    schedule_flush()
-    {:noreply, state}
-  end
-
-  @impl true
   def handle_info(:check_idle, state) do
     idle_ms = System.monotonic_time(:millisecond) - state.last_activity
+    {_, mailbox_len} = Process.info(self(), :message_queue_len)
 
-    if idle_ms > @idle_timeout do
+    if idle_ms > @idle_timeout and mailbox_len == 0 do
       Logger.info("Room idle, shutting down: #{state.room_slug}")
       {:stop, :normal, state}
     else
@@ -132,48 +108,17 @@ defmodule BlitzChat.Chat.RoomServer do
   end
 
   @impl true
-  def handle_info(:calculate_throughput, state) do
-    :telemetry.execute(
-      [:blitz_chat, :room, :throughput],
-      %{messages: state.message_count},
-      %{room_id: state.room_id}
-    )
-
-    schedule_throughput()
-    {:noreply, state}
-  end
-
-  @impl true
   def terminate(_reason, state) do
-    flush_buffer(state)
-
     :telemetry.execute([:blitz_chat, :room, :stopped], %{count: 1}, %{room_id: state.room_id})
     Logger.info("Room process stopped: #{state.room_slug}")
-
     :ok
   end
 
-  # Private
-
-  defp flush_buffer(%{buffer_size: 0} = state), do: state
-
-  defp flush_buffer(state) do
-    case Chat.insert_messages_batch(Enum.reverse(state.message_buffer)) do
-      {count, _} ->
-        :telemetry.execute(
-          [:blitz_chat, :room, :buffer_flushed],
-          %{batch_size: count},
-          %{room_id: state.room_id}
-        )
-
-      _ ->
-        :ok
-    end
-
-    %{state | message_buffer: [], buffer_size: 0}
+  defp touch_activity(state) do
+    %{state | last_activity: System.monotonic_time(:millisecond)}
   end
 
-  defp schedule_flush, do: Process.send_after(self(), :flush_buffer, @flush_interval)
-  defp schedule_idle_check, do: Process.send_after(self(), :check_idle, @idle_check_interval)
-  defp schedule_throughput, do: Process.send_after(self(), :calculate_throughput, @throughput_interval)
+  defp schedule_idle_check do
+    Process.send_after(self(), :check_idle, @idle_check_interval)
+  end
 end
