@@ -80,14 +80,14 @@ defmodule BlitzChatWeb.Router do
     end
   end
 
-  # Enable LiveDashboard in development
-  if Application.compile_env(:blitz_chat, :dev_routes) do
-    import Phoenix.LiveDashboard.Router
+  # LiveDashboard — admin-gated in every environment
+  import Phoenix.LiveDashboard.Router
 
-    scope "/dev" do
-      pipe_through :browser
+  scope "/" do
+    pipe_through :browser
 
-      live_dashboard "/dashboard", metrics: BlitzChatWeb.Telemetry
-    end
+    live_dashboard "/admin/metrics",
+      metrics: BlitzChatWeb.Telemetry,
+      on_mount: [BlitzChatWeb.LiveAuth, {BlitzChatWeb.LiveAuth, :ensure_admin}]
   end
 end
