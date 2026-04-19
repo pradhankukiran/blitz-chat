@@ -7,6 +7,8 @@ defmodule BlitzChat.Application do
 
   @impl true
   def start(_type, _args) do
+    :logger.add_handlers(:sentry)
+
     children = [
       BlitzChatWeb.Telemetry,
       BlitzChat.Repo,

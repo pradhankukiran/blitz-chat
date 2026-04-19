@@ -24,6 +24,14 @@ config :blitz_chat, BlitzChatWeb.Endpoint,
   http: [port: String.to_integer(System.get_env("PORT", "4000"))]
 
 if config_env() == :prod do
+  if dsn = System.get_env("SENTRY_DSN") do
+    config :sentry,
+      dsn: dsn,
+      environment_name: :prod,
+      enable_source_code_context: true,
+      root_source_code_paths: [File.cwd!()]
+  end
+
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """
