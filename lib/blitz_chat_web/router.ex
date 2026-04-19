@@ -16,6 +16,10 @@ defmodule BlitzChatWeb.Router do
     plug OpenApiSpex.Plug.PutApiSpec, module: BlitzChatWeb.ApiSpec
   end
 
+  # Health endpoints (no pipeline — deliberate minimal overhead)
+  get "/health", BlitzChatWeb.HealthController, :live
+  get "/ready", BlitzChatWeb.HealthController, :ready
+
   pipeline :api_auth do
     plug :accepts, ["json"]
     plug OpenApiSpex.Plug.PutApiSpec, module: BlitzChatWeb.ApiSpec
